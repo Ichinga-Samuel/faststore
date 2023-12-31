@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Filestore</title>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        body {
+          margin:20px;
+          background-color: #fafafa;
+        }
+        input[type="text"]{
+            padding:10px;
+            border-radius:10px;
+            width: 100%;
+            margin:10px 0
+        }
+        label{
+            display: block;
+        }
+        button{
+          padding:10px;
+          border:none;
+          background-color:#3F51B5;
+          color:#fff;
+          font-weight:600;
+          border-radius:5px;
+          width:100%;
+        }
+        main{
+            width: 90%;
+            margin: 0 auto;
+        }
+        h1, h2{
+            text-align: center;
+            margin: 20px 0;
+        }
+        .upload-form{
+            margin: 10px auto;
+            padding: 10px;
+            width: 50%;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .file-upload{
+            margin: 5px 0;
+
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .custom-file-upload {
+            border: 1px solid #ccc;
+            display: inline-block;
+            padding: 6px 12px;
+            cursor: pointer;
+            background-color: green;
+            border-radius: 10px;
+        }
+    </style>
+  </head>
+  <body>
+    <main>
+        <h1>Simple Web App Testing The Features of The Filestore Library</h1>
+        <div class="upload-form">
+            <h2>Single Book Upload With Local Storage</h2>
+            <form action="{{url_for('local_single')}}" method="post" enctype="multipart/form-data">
+                <label for="lt">Book Title</label>
+                <input type="text" name="title" id="lt" placeholder="title">
+                <div class="file-upload">
+                    <label for="lb" class="custom-file-upload">Select a Book</label>
+                    <input type="file" id="lb" name="book">
+                </div>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+
+        <div class="upload-form">
+            <h2>Multiple Book Upload With Local Storage</h2>
+            <form action="{{url_for('local_multiple')}}" method="post" enctype="multipart/form-data">
+
+                <label for="mlt">Title</label>
+                <input type="text" name="title" id="mlt" placeholder="title" required>
+
+                <label for="mlan">Name of Author</label>
+                <input type="text" name="author_name" id="mlan" placeholder="author" required>
+
+                <div class="file-upload">
+                    <label for="mlb" class="custom-file-upload">Select Books</label>
+                    <input type="file" id="mlb" name="books" multiple>
+                </div>
+
+                <div class="file-upload">
+                    <label for="mlc" class="custom-file-upload">Select a Cover</label>
+                    <input type="file" id="mlc" name="cover">
+                </div>
+
+                <div class="file-upload">
+                    <label for="mla" class="custom-file-upload">Select an Author</label>
+                    <input type="file" id="mla" name="author">
+                </div>
+
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+
+        <div class="upload-form">
+            <h2>Single File Upload in Memory</h2>
+            <form action="{{url_for('single_memory')}}" method="post" enctype="multipart/form-data">
+                <div class="file-upload">
+                    <label for="mc" class="custom-file-upload">Select a Cover Image</label>
+                    <input type="file" id="mc" name="cover">
+                </div>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+
+        <div class="upload-form">
+            <h2>Multiple Files Upload in Memory</h2>
+            <form action="{{url_for('multiple_memory')}}" method="post" enctype="multipart/form-data">
+               <div class="file-upload">
+                    <label for="mmc" class="custom-file-upload">Select Book Covers</label>
+                    <input type="file" id="mmc" name="covers" multiple>
+               </div>
+                <div class="file-upload">
+                      <label for="mmb" class="custom-file-upload">Select a Book</label>
+                      <input type="file" id="mmb" name="book">
+                </div>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+
+        <div class="upload-form">
+            <h2>Single Book Upload With S3 Storage</h2>
+            <form action="{{url_for('s3_single')}}" method="post" enctype="multipart/form-data">
+                <div class="file-upload">
+                    <label for="sb" class="custom-file-upload">Select a Book</label>
+                    <input type="file" name="book" id="sb">
+                </div>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+        <div class="upload-form">
+            <h2>Multiple Book Upload With S3 Storage</h2>
+            <form action="{{url_for('s3_multiple')}}" method="post" enctype="multipart/form-data">
+                <label for="st">Title</label>
+                <input type="text" name="title" id="st" placeholder="title" required>
+
+                <label for="san">Name of Author</label>
+                <input type="text" name="author_name" id="san" placeholder="author" required>
+
+                <div class="file-upload">
+                    <label for="msb" class="custom-file-upload">Select Books</label>
+                    <input type="file" id="msb" name="book" multiple>
+                </div>
+
+                <div class="file-upload">
+                    <label for="msc" class="custom-file-upload">Select a Cover Image</label>
+                    <input type="file" name="cover" id="msc">
+                </div>
+                <div class="file-upload">
+                    <label for="msa" class="custom-file-upload">Select an Author Image</label>
+                    <input type="file" name="author" id="msa">
+                </div>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+
+        <div class="upload-form">
+            <h2>One Class To Rule Them All</h2>
+            <form action="{{url_for('filestore')}}" method="post"enctype="multipart/form-data">
+                <label for="ft">Title</label>
+                <input type="text" name="title" id="ft" placeholder="title" required>
+                <div class="file-upload">
+                    <label for="fb" class="custom-file-upload">Select Books</label>
+                    <input type="file" name="books" id="fb" multiple>
+                </div>
+                <div class="file-upload">
+                    <label for="fc" class="custom-file-upload">Select Cover Images</label>
+                    <input type="file" name="covers" id="fc" multiple>
+                </div>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+    </main>
+  </body>
+</html>
