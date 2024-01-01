@@ -5,7 +5,11 @@ import asyncio
 from typing import BinaryIO
 from urllib.parse import quote as urlencode
 from logging import getLogger
-from functools import cache
+try:
+    from functools import cache
+except ImportError:
+    from functools import lru_cache
+    cache = lru_cache(maxsize=None)
 
 import boto3
 
@@ -14,6 +18,10 @@ from ..structs import FileField, UploadFile, FileData
 from .storage_engine import StorageEngine
 
 logger = getLogger(__name__)
+
+
+async def make_async(func, *args, **kwargs):
+    return func(*args, **kwargs)
 
 
 class S3Engine(StorageEngine):
@@ -51,7 +59,10 @@ class S3Engine(StorageEngine):
         Returns:
             None: Nothing is returned.
         """
-        return await asyncio.to_thread(self.client.put_object, Body=file_obj, Bucket=bucket, Key=obj_name, **extra_args)
+        try:
+            return await asyncio.to_thread(self.client.put_object, Body=file_obj, Bucket=bucket, Key=obj_name, **extra_args)
+        except AttributeError:
+            return await make_async(self.client.put_object, Body=file_obj, Bucket=bucket, Key=obj_name, **extra_args)
 
     async def _background_upload(self, *, file_obj: BinaryIO, bucket: str, obj_name: str,
                                  extra_args: dict) -> UploadFile:
@@ -68,7 +79,10 @@ class S3Engine(StorageEngine):
         Returns:
             None: Nothing is returned.
         """
-        return await asyncio.to_thread(self.client.upload_fileobj, file_obj, bucket, obj_name, ExtraArgs=extra_args)
+        try:
+            return await asyncio.to_thread(self.client.upload_fileobj, file_obj, bucket, obj_name, ExtraArgs=extra_args)
+        except AttributeError:
+            return await make_async(self.client.upload_fileobj, file_obj, bucket, obj_name, ExtraArgs=extra_args)
 
     # noinspection PyTypeChecker
     async def upload(self, *, file_field: FileField = None) -> FileData:

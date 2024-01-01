@@ -4,7 +4,7 @@ This module contains a test FastAPI application and the endpoints.
 import base64
 
 from fastapi import FastAPI, Request, Depends, UploadFile, File, Form, Response
-from typing import List
+from typing import List, Union
 import uvicorn
 from fastapi.templating import Jinja2Templates
 from dotenv import load_dotenv
@@ -113,7 +113,7 @@ async def mem_multiple(model=Depends(multiple_mem.model), mem=Depends(multiple_m
 
 
 @app.post('/filestore', name='filestore')
-async def filestore(model=Depends(filestore.model), files=Depends(filestore)) -> FileData | List[FileData]:
+async def filestore(model=Depends(filestore.model), files=Depends(filestore)) -> Union[FileData, List[FileData]]:
     return files
 
 

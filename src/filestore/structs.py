@@ -48,7 +48,7 @@ if td:
         """
         The configuration for the FastStore class.
         """
-        destination: Callable[[Request, Form, str, UploadFile], Union[str, Path]] | str | Path
+        destination: Union[Callable[[Request, Form, str, UploadFile], Union[str, Path]], str, Path]
         filter: Callable[[Request, Form, str, UploadFile], bool]
         max_files: int
         max_fields: int

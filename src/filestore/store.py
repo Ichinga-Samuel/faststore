@@ -2,7 +2,7 @@
 Single storage class to handle multiple storage option
 """
 import asyncio
-from typing import Type, List, Dict
+from typing import Type, List, Dict, Union
 from random import randint
 from logging import getLogger
 
@@ -55,14 +55,14 @@ class FileStore:
         model = create_model(model_name, **body, __base__=FormModel)
         return model
 
-    async def __call__(self, req: Request, bgt: BackgroundTasks) -> UploadFile | List[UploadFile]:
+    async def __call__(self, req: Request, bgt: BackgroundTasks) -> Union[FileData, List[FileData]]:
         self.request = req
         self.background_tasks = bgt
         try:
             max_files, max_fields = self.config['max_files'], self.config['max_fields']
             form = await req.form(max_files=max_files, max_fields=max_fields)
             self.form = form
-            file_fields: List[FileField | Dict] = []
+            file_fields: List[Union[FileField, Dict]] = []
             for field in self.fields:
                 name = field['name']
                 count = field.get('max_count', None)
@@ -76,7 +76,7 @@ class FileStore:
                     file_fields.append(file_dict)
 
             if not file_fields:
-                return UploadFile(...)
+                return FileData(status=False, error='No files uploaded', message='No files uploaded')
 
             elif len(file_fields) == 1:
                 return await self.upload(file_field=file_fields[0])
@@ -102,7 +102,7 @@ class FileStore:
             return FileData(status=False, error='Something went wrong', field_name=file_field['name'],
                             message=f'Unable to upload {file_field["name"]}')
 
-    async def multi_upload(self, *, file_fields: List[FileField | Dict]) -> List[FileData]:
+    async def multi_upload(self, *, file_fields: List[Union[FileField, Dict]]) -> List[FileData]:
         """Upload multiple files with there respective storage engine
 
         Args:

@@ -3,7 +3,7 @@
 ![GitHub issues](https://img.shields.io/github/issues/ichinga-samuel/faststore?style=plastic)
 ![PyPI](https://img.shields.io/pypi/v/filestore)
 ![passing](https://img.shields.io/github/actions/workflow/status/ichinga-samuel/faststore/master.yaml)
-[![Python 3.8+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads)
 ## Introduction
 Simple file storage dependency for FastAPI. Makes use of FastAPI's dependency injection system to provide a simple way
 to handle files. Inspired by Multer it allows both single and multiple file uploads through different fields with a 

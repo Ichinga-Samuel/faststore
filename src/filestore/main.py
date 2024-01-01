@@ -1,7 +1,7 @@
 """This module contains the main classes and methods for the filestore package."""
 
 import asyncio
-from typing import Type, TypeVar, List, Dict
+from typing import Type, TypeVar, List, Dict, Union
 from abc import abstractmethod
 from logging import getLogger
 from random import randint
@@ -168,7 +168,7 @@ class FastStore:
             form = await req.form(max_files=max_files, max_fields=max_fields)
             self.form = form
             self.engine = self.StorageEngine(request=req, form=form, background_tasks=bgt)
-            file_fields: List[FileField | Dict] = []
+            file_fields: List[Union[FileField, Dict]] = []
             for field in self.fields:
                 name = field['name']
                 count = field.get('max_count', None)
