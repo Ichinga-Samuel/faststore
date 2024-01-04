@@ -62,13 +62,13 @@ def __init__(name: str = '', count: int = 1, required: bool = False, fields: lis
 Instantiates a FastStore object. All arguments are key word arguments with defaults
 **Parameters:**
 
-|Name|Type|Description|Default|
-|---|---|---|---|
-|`name`|`str`|The name of the file field to expect from the form for a single field upload|`''`|
-|`count`|`int`|The maximum number of files to accept for a single field upload|`1`|
-|`required`|`bool`|Set as true if the field defined in name is required|`False`|
-|`fields`|`list[FileField]`|A list of fields to expect from the form. Usually for multiple file uploads from different fields|`None`|
-|`config`|`Config`|The Config dictionary|`None`|
+| Name       | Type              | Description                                                                                       | Default |
+|------------|-------------------|---------------------------------------------------------------------------------------------------|---------|
+| `name`     | `str`             | The name of the file field to expect from the form for a single field upload                      | `''`    |
+| `count`    | `int`             | The maximum number of files to accept for a single field upload                                   | `1`     |
+| `required` | `bool`            | Set as true if the field defined in name is required                                              | `False` |
+| `fields`   | `list[FileField]` | A list of fields to expect from the form. Usually for multiple file uploads from different fields | `None`  |
+| `config`   | `Config`          | The Config dictionary                                                                             | `None`  |
 
 **Note:**
 If you provide both name and fields arguments the two are merged together with the name argument taking precedence if there is a name clash.\
@@ -76,12 +76,12 @@ If you provide both name and fields arguments the two are merged together with t
 **FileField**\
 A dictionary representing form fields. 
 
-|Key|Type|Description|Note|
-|---|---|---|---|
-|`name`|`str`|The name of the field|Required|
-|`count`|`int`|The maximum number of files to expect|Defaults to 1|
-|`required`|`bool`|Set as true if the field is required|Defaults to false|
-|`config`|`Config`|A config dict for individual field|Optional|
+| Key        | Type     | Description                           | Note              |
+|------------|----------|---------------------------------------|-------------------|
+| `name`     | `str`    | The name of the field                 | Required          |
+| `count`    | `int`    | The maximum number of files to expect | Defaults to 1     |
+| `required` | `bool`   | Set as true if the field is required  | Defaults to false |
+| `config`   | `Config` | A config dict for individual field    | Optional          |
 
 **Config**\
 The config dictionary is to be passed to faststore class during instantiation or added to individual file field dict
@@ -154,30 +154,30 @@ This method is an abstract method and must be implemented in a child class. It i
 ### FileData
 This pydantic model represents the result of an individual file storage operation.
 
-|Name|Type|Description|Note|
-|---|---|---|---|
-|`path`|`str`|The path to the file for local storage|Local Storage|
-|`url`|`str`|The url to the file for cloud storage|Cloud Storage|
-|`status`|`bool`|The status of the file storage operation|Defaults to true|
-|`content_type`|`bool`|The content type of the file|
-|`filename`|`str`|The name of the file|
-|`size`|`int`|The size of the file|
-|`file`|`bytes`|The file object for memory storage|Memory Storage|
-|`field_name`|`str`|The name of the form field|
-|`metadata`|`dict`|Extra metadata of the file|
-|`error`|`str`|The error message if the file storage operation failed|
-|`message`|`str`|Success message if the file storage operation was successful|
+| Name           | Type    | Description                                                  | Note             |
+|----------------|---------|--------------------------------------------------------------|------------------|
+| `path`         | `str`   | The path to the file for local storage                       | Local Storage    |
+| `url`          | `str`   | The url to the file for cloud storage                        | Cloud Storage    |
+| `status`       | `bool`  | The status of the file storage operation                     | Defaults to true |
+| `content_type` | `bool`  | The content type of the file                                 |
+| `filename`     | `str`   | The name of the file                                         |
+| `size`         | `int`   | The size of the file                                         |
+| `file`         | `bytes` | The file object for memory storage                           | Memory Storage   |
+| `field_name`   | `str`   | The name of the form field                                   |
+| `metadata`     | `dict`  | Extra metadata of the file                                   |
+| `error`        | `str`   | The error message if the file storage operation failed       |
+| `message`      | `str`   | Success message if the file storage operation was successful |
 
 ### Store Class
 The response model for the FastStore class. A pydantic model.
 
-|Name|Type|Description|
-|---|---|---|
-|`file`|`FileData \| None`|The result of a single file upload or storage operation|
-|`files`|`Dict[str, List[FileData]]`|The result of multiple file uploads or storage operations|
-|`failed`|`Dict[str, List[FileData]]`|The results of a failed file upload or storage operation|
-|`error`|`str`|The error message if the file storage operation failed|
-|`message`|`str`|Success message if the file storage operation was successful|
+| Name      | Type                        | Description                                                  |
+|-----------|-----------------------------|--------------------------------------------------------------|
+| `file`    | `FileData \| None`          | The result of a single file upload or storage operation      |
+| `files`   | `Dict[str, List[FileData]]` | The result of multiple file uploads or storage operations    |
+| `failed`  | `Dict[str, List[FileData]]` | The results of a failed file upload or storage operation     |
+| `error`   | `str`                       | The error message if the file storage operation failed       |
+| `message` | `str`                       | Success message if the file storage operation was successful |
 
 **\_\_len\_\_**
 ```python
@@ -282,7 +282,8 @@ def book_filter(req: Request, form: FormData, field: str, file: UploadFile) -> b
 ```python
 # initiate a local storage instance with a destination function, a filename function and a filter function.
 loc = LocalStorage(
-    fields = [{'name': 'book', 'max_count': 2, 'required': True, 'config': {'filter': book_filter}}, {'name': 'image', 'max_count': 2}],
+    fields = [{'name': 'book', 'max_count': 2, 'required': True, 'config': {'filter': book_filter}},
+              {'name': 'image', 'max_count': 2}],
     config={
         'destination': local_destination,
         'filename': local_filename,
@@ -306,7 +307,8 @@ is set to false indicating a failed operation. The resulting FileData object is 
 *store* property of the FastStore instance. The error message is also added to the *error* attribute of the *store*
 
 ### File Storage Classes
-All storage class inherit from the base FastStore class. This class implements the upload and multi_upload methods with a specialized storage engine. The following storage classes are available.
+All storage class inherit from the base FastStore class. This class implements the upload and multi_upload methods with
+a specialized storage engine. The following storage classes are available.
 
 
 ### LocalStorage
@@ -331,19 +333,20 @@ This class handles memory storage. It stores the file in memory and returns the 
 a bytes object.
 
 ### Custom Storage Class
-You can build your own storage class by inheriting from the FastStore class and implementing the upload and/or multi_uploads.
-You can use an inbuilt instance of the StorageEngine class or build your own storage engine class.
+You can build your own storage class by inheriting from the FastStore class and implementing the upload
+and/or multi_uploads. You can use an inbuilt instance of the StorageEngine class or build your own storage engine class.
 
 ### Storage Engine
 This is the base class for building a storage engine. It implements the upload and multi_upload methods.
-It is an abstract class and must be inherited from. Storage engines are used by the storage classes to handle file uploads.
-The following storage engines are available.
+It is an abstract class and must be inherited from. Storage engines are used by the storage classes to handle file
+uploads. The following storage engines are available.
 
 ### LocalEngine
 This class handles local file storage to the disk.
 
 ### S3Engine
-This class handles cloud storage to AWS S3. When using this class ensure that the appropriate environment variables as specified in the S3 Storage service class are available.
+This class handles cloud storage to AWS S3. When using this class ensure that the appropriate environment variables as
+specified in the S3 Storage service class are available.
 
 ### Build your own storage engine
 You can build your own storage class by inheriting from the Storage engine class and implementing the **upload** and 
@@ -357,8 +360,9 @@ You can run the file storage operation as a background task by setting the backg
 to True in either the object instance config parameter or the FileField config dict.
 
 ### FileStore Class
-With the filestore class you can use multiple storage engines to handle file uploads for a single form. This can be done by specifying a 
-storage engine in the config parameter the FileField dict. That is to say you can upload a file to local storage and another to cloud storage with same form
+With the filestore class you can use multiple storage engines to handle file uploads for a single form. This can be done
+by specifying a storage engine in the config parameter the FileField dict. That is to say you can upload a file to
+local storage and another to cloud storage with same form
 
 ```python
 from filestore import FileStore, LocalEngine, S3Engine
@@ -368,3 +372,9 @@ filestore = FileStore(fields=[{'name': 'books', 'max_count': 2, 'storage': Local
                                                                                             'background': True,
                                                                                             'filter': image_filter}}])
 ```
+
+## Support
+Feeling generous, like the package or want to see it become more a mature package?
+
+Consider supporting the project by buying me a coffee.\
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/ichingasamuel)
