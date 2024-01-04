@@ -66,6 +66,8 @@ class FastStore:
         _store (Store): The Store of the file storage operation.
         store (Store): Property to access and set the result of the file storage operation.
         file_count (int): The Total number of files in the request.
+        engine (StorageEngine): The storage engine instance for the file storage service.
+        StorageEngine (Type[StorageEngine]): The storage engine class for the file storage service.
         background_tasks (BackgroundTasks): The background tasks object for running tasks in the background.
 
     Methods:

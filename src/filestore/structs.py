@@ -57,6 +57,7 @@ if td:
         extra_args: dict
         bucket: str
         region: str
+        storage: StorageEngine
 
 
     class FileField(TypedDict, total=False):

@@ -50,8 +50,9 @@ async def local_multiple(model=Depends(multiple_local.model), loc=Depends(multip
 FastStore Instantiation. All arguments are keyword arguments.
 
 ### FastStore
-The base class for the FastStore package. It is an abstract class and must be inherited from for custom file
-storage services. The upload and multi_upload methods must be implemented in a child class.
+The base class for building a file storage service. This base class and must be inherited from for custom file
+storage services. The upload methods must be implemented in a child class. This class implements a callable instance
+makes dependency injection possible.
 
 **\_\_init\_\_**
 ```python
@@ -85,31 +86,33 @@ A dictionary representing form fields.
 **Config**\
 The config dictionary is to be passed to faststore class during instantiation or added to individual file field dict
 
-|Key|Type|Description|Note|
-|---|---|---|---|
-|`storage`|`str`|The storage system to use. Defaults to local|`local`, `s3`, `memory`|
-|`dest`|`str\|Path`|The path to save the file relative to the current working directory. Defaults to uploads. Specifying destination will override dest |LocalStorage and S3Storage|
-|`destination`|`Callable[[Request, Form, str, UploadFile], str \| Path]`|A destination function for saving the file|Local and Cloud Storage|
-|`filter`|`Callable[[Request, Form, str, UploadFile], bool]`|Remove unwanted files|
-|`max_files`|`int`|The maximum number of files to expect. Defaults to 1000| Not applicable to FileField config dict|
-|`max_fields`|`int`|The maximum number of file fields to expect. Defaults to 1000| Not applicable in FileField config dict|
-|`filename`|`Callable[[Request, Form, str, UploadFile], UploadFile]`|A function for customizing the filename|Local and Cloud Storage|
-|`background`|`bool`|If true run the storage operation as a background task|Local and Cloud Storage|
-|`extra_args`|`dict`|Extra arguments for AWS S3 Storage| S3Storage|
-|`bucket`|`str`|Name of storage bucket for cloud storage|Cloud Storage|
-|`region`|`str`|Name of region for cloud storage|Cloud Storage| Not available in FileField config dict|
+| Key           | Type                                                      | Description                                                                                                                         | Note                                      |
+|---------------|-----------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| `storage`     | `StorageEngine`                                           | Storage engine for handling file uploads.                                                                                           | `LocalEngine`, `S3Engine`, `MemoryEngine` |
+| `dest`        | `str\|Path`                                               | The path to save the file relative to the current working directory. Defaults to uploads. Specifying destination will override dest | LocalStorage and S3Storage                |
+| `destination` | `Callable[[Request, Form, str, UploadFile], str \| Path]` | A destination function for saving the file                                                                                          | Local and Cloud Storage                   |
+| `filter`      | `Callable[[Request, Form, str, UploadFile], bool]`        | Remove unwanted files                                                                                                               |
+| `max_files`   | `int`                                                     | The maximum number of files to expect. Defaults to 1000                                                                             | Not applicable to FileField config dict   |
+| `max_fields`  | `int`                                                     | The maximum number of file fields to expect. Defaults to 1000                                                                       | Not applicable in FileField config dict   |
+| `filename`    | `Callable[[Request, Form, str, UploadFile], UploadFile]`  | A function for customizing the filename                                                                                             | Local and Cloud Storage                   |
+| `background`  | `bool`                                                    | If true run the storage operation as a background task                                                                              | Local and Cloud Storage                   |
+| `extra_args`  | `dict`                                                    | Extra arguments for AWS S3 Storage                                                                                                  | S3Storage                                 |
+| `bucket`      | `str`                                                     | Name of storage bucket for cloud storage                                                                                            | Cloud Storage                             |
+| `region`      | `str`                                                     | Name of region for cloud storage                                                                                                    | Cloud Storage                             |
 
 **Attributes**
 
-|name|type|description|
-|---|---|---|
-|fields|`list[FileField]`|A list of FileField objects|
-|config|`Config`|The config dictionary|
-|form|`FormData`|The form object|
-|request|`Request`|The request object|
-|store|`Store`|The result of the file storage operation|
-|file_count|`int`|The total number of files in the form|
-|background|`BackgroundTasks`|The background task object for running storage tasks in the background|
+| name             | type                  | description                                                            |
+|------------------|-----------------------|------------------------------------------------------------------------|
+| fields           | `list[FileField]`     | A list of FileField objects                                            |
+| config           | `Config`              | The config dictionary                                                  |
+| form             | `FormData`            | The form object                                                        |
+| request          | `Request`             | The request object                                                     |
+| store            | `Store`               | The result of the file storage operation                               |
+| file_count       | `int`                 | The total number of files in the form                                  |
+| engine           | `StorageEngine`       | The StorageEngine object for handling uploads                          | 
+| StorageEngine    | `Type[StorageEngine]` | The StorageEngine class for handling uploads                           |
+| background_tasks | `BackgroundTasks`     | The background task object for running storage tasks in the background |
 
 
 **\_\_call\_\_**
@@ -302,9 +305,9 @@ Any error that occurs is caught and passed to the error attribute of the FileDat
 is set to false indicating a failed operation. The resulting FileData object is added to the *failed* attribute of the
 *store* property of the FastStore instance. The error message is also added to the *error* attribute of the *store*
 
-### Storage Classes
-All storage class inherit from the base FastStore class. This class implements a callable instance that can be used
-as a dependency in a fastapi route function.
+### File Storage Classes
+All storage class inherit from the base FastStore class. This class implements the upload and multi_upload methods with a specialized storage engine. The following storage classes are available.
+
 
 ### LocalStorage
 This class handles local file storage to the disk.
@@ -325,13 +328,43 @@ s3 = S3Storage(fields=[{'name': 'book', 'max_count': 2, 'required': True}, {'nam
 
 ### MemoryStorage
 This class handles memory storage. It stores the file in memory and returns the file object in the store object as 
-a bytes object. For image files they are encoded with base64 encoding before returning.
+a bytes object.
+
+### Custom Storage Class
+You can build your own storage class by inheriting from the FastStore class and implementing the upload and/or multi_uploads.
+You can use an inbuilt instance of the StorageEngine class or build your own storage engine class.
+
+### Storage Engine
+This is the base class for building a storage engine. It implements the upload and multi_upload methods.
+It is an abstract class and must be inherited from. Storage engines are used by the storage classes to handle file uploads.
+The following storage engines are available.
+
+### LocalEngine
+This class handles local file storage to the disk.
+
+### S3Engine
+This class handles cloud storage to AWS S3. When using this class ensure that the appropriate environment variables as specified in the S3 Storage service class are available.
+
+### Build your own storage engine
+You can build your own storage class by inheriting from the Storage engine class and implementing the **upload** and 
+**multiple_upload** methods. 
+
+### MemoryEngine
+This class handles memory storage. It stores the file in memory as a bytes object.
 
 ### Background Tasks
 You can run the file storage operation as a background task by setting the background key in the config parameter
 to True in either the object instance config parameter or the FileField config dict.
 
-### Build your own storage class
-You can build your own storage class by inheriting from the FastStore class and implementing the **upload** and 
-**multiple_upload** methods. Just make sure you properly use the store property to set the result of the
-file storage operation.
+### FileStore Class
+With the filestore class you can use multiple storage engines to handle file uploads for a single form. This can be done by specifying a 
+storage engine in the config parameter the FileField dict. That is to say you can upload a file to local storage and another to cloud storage with same form
+
+```python
+from filestore import FileStore, LocalEngine, S3Engine
+filestore = FileStore(fields=[{'name': 'books', 'max_count': 2, 'storage': LocalEngine,
+                               'config': {'destination': 'test_data/uploads/Books', 'filter': book_filter}},
+                              {'name': 'covers', 'max_count': 2, 'storage': S3Engine, 'config': {'destination': 'Covers',
+                                                                                            'background': True,
+                                                                                            'filter': image_filter}}])
+```
