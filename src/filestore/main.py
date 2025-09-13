@@ -1,59 +1,20 @@
 """This module contains the main classes and methods for the filestore package."""
-
 import asyncio
-from typing import Type, TypeVar, List, Dict, Union
-from abc import abstractmethod
+from typing import Type
 from logging import getLogger
-from random import randint
 
-from starlette.datastructures import UploadFile as StarletteUploadFile, FormData
-from fastapi import Request, BackgroundTasks
-from pydantic import create_model, Field, BaseModel as FormModel
+from starlette.datastructures import FormData
+from starlette.background import BackgroundTasks
+from starlette.requests import Request
 
-# from .util import FormModel
-from .structs import FileField, FileData, Store, Config, cache, UploadFile
+from .datastructures import FileField, FileData, Store, Config
 from .storage_engines import StorageEngine
 from .exceptions import FileStoreError
 
 logger = getLogger(__name__)
-Self = TypeVar('Self', bound='FastStore')
 
 
-def _file_filter(file):
-    return isinstance(file, StarletteUploadFile) and file.filename
-
-
-def file_filter(req: Request, form: FormData, field: str, file: UploadFile) -> bool:
-    """
-    The default config filter function for the FastStore class. This filter applies to all fields.
-
-    Args:
-        req (Request): The request object.
-        form (FormData): The form data object.
-        field (Field): The name of the field.
-        file (UploadFile): The file object.
-
-    Returns (bool): True if the file is valid, False otherwise.
-    """
-    return True
-
-
-def filename(req: Request, form: FormData, field: str, file: UploadFile) -> UploadFile:
-    """
-    Update the filename of the file object.
-
-    Args:
-        req (Request): The request object.
-        form (FormData): The form data object.
-        field (Field): The name of the field.
-        file (UploadFile): The file object.
-
-    Returns (UploadFile): The file object with the updated filename.
-    """
-    return file
-
-
-class FastStore:
+class FileStore:
     """
     The base class for the FastStore package. It is an abstract class and must be inherited from for custom file
     storage services. The upload and multi_upload methods must be implemented in a child class.
@@ -63,17 +24,12 @@ class FastStore:
         request (Request): The request object.
         form (FormData): The form data object.
         config (dict): The configuration for the storage service.
-        _store (Store): The Store of the file storage operation.
-        store (Store): Property to access and set the result of the file storage operation.
-        file_count (int): The Total number of files in the request.
         engine (StorageEngine): The storage engine instance for the file storage service.
         StorageEngine (Type[StorageEngine]): The storage engine class for the file storage service.
         background_tasks (BackgroundTasks): The background tasks object for running tasks in the background.
 
     Methods:
         upload (Callable[[FileField]]): The method to upload a single file.
-
-        multi_upload (Callable[List[FileField]]): The method to upload multiple files.
 
     Config:
         max_files (int): The maximum number of files to accept in a single request. Defaults to 1000.
@@ -95,19 +51,16 @@ class FastStore:
 
         bucket (str): The name of the bucket to upload the file to in the cloud storage service.
     """
-    fields: List[FileField]
+    fields: list[FileField]
     config: Config
     form: FormData
     request: Request
     background_tasks: BackgroundTasks
-    file_count: int
-    _store: Store
-    store: Store
     engine: StorageEngine
     StorageEngine: Type[StorageEngine]
 
-    def __init__(self, name: str = '', count: int = 1, required=False, fields: List[FileField] = None,
-                 config: Config = None):
+    def __init__(self, name: str = None, count: int = 1, required=False, fields: list[FileField] = None,
+                 config: Config | dict = None):
         """
         Initialize the FastStore class. For single file upload, specify the name of the file field and the expected
         number of files. If the field is required, set required to True.
@@ -124,132 +77,70 @@ class FastStore:
         Note:
             If fields and name are specified then the name field is added to the fields list.
         """
-        field = {'name': name, 'max_count': count, 'required': required} if name else {}
-        self.fields = fields or []
-        self.fields.append(field) if field else ...
-        self.config = {'filter': file_filter, 'max_files': 1000, 'max_fields': 1000, 'filename': filename,
-                       'background': False, **(config or {})}
+        if fields is None:
+            self.fields = [FileField(name=name, max_count=count, required=required)] if name else []
+        else:
+            self.fields = fields or []
+        self.config = {'background': False, **(config or {})}
 
-    @property
-    @cache
-    def model(self) -> Type[FormModel]:
-        """
-        Returns a pydantic model for the form fields.
+    def get_form_args(self) -> dict:
+        return {"max_files": self.config.get("max_files", 1000), "max_fields": self.config.get("max_fields", 1000),
+         "max_part_size": self.config.get("max_part_size", 1024 * 1024)}
 
-        Returns:
-            FormModel
-        """
-        body = {}
-        for field in self.fields:
-            if field.get('max_count', 1) > 1:
-                body[field['name']] = (List[UploadFile], ...) if field.get('required', False) \
-                    else (List[UploadFile], Field([], validate_default=False))
-            else:
-                body[field['name']] = (UploadFile, ...) if field.get('required', False) \
-                    else (UploadFile, Field(None, validate_default=False))
-        model_name = f"FormModel{randint(100, 1000)}"
-        model = create_model(model_name, **body, __base__=FormModel)
-        return model
-
-    async def __call__(self, req: Request, bgt: BackgroundTasks) -> Self:
+    async def __call__(self, request: Request, background_tasks: BackgroundTasks) -> Store:
         """
         Upload files to a storage service. This enables the FastStore class instance to be used as a dependency.
 
         Args:
-            req (Request): The request object.
-            bgt (BackgroundTasks): The background tasks object for running tasks in the background.
+            request (Request): The request object.
+            background_tasks (BackgroundTasks): The background tasks object for running tasks in the background.
 
         Returns:
             FastStore: An instance of the FastStore class.
         """
-        self._store = Store()
-        self.request = req
-        self.background_tasks = bgt
+        self.request = request
+        self.background_tasks = background_tasks
         try:
-            max_files, max_fields = self.config['max_files'], self.config['max_fields']
-            form = await req.form(max_files=max_files, max_fields=max_fields)
-            self.form = form
-            self.engine = self.StorageEngine(request=req, form=form, background_tasks=bgt)
-            file_fields: List[Union[FileField, Dict]] = []
-            for field in self.fields:
-                name = field['name']
-                count = field.get('max_count', None)
-                files = form.getlist(name)[: count]
-                field['config'] = {**self.config, **field.get('config', {})}
-                for file in files:
-                    config = field['config']
-                    _filter = config.get('filter', file_filter)
-                    if not (_file_filter(file) and _filter(req, form, name, file)): continue
-                    file_dict = {**field, 'file': config.get('filename', filename)(req, form, name, file)}
-                    file_fields.append(file_dict)
+            self.form = await request.form(**self.get_form_args())
+            self.engine = self.StorageEngine(request=request, form=self.form, background_tasks=background_tasks)
+            self.config['storage_engine'] = self.engine
+            for _field in self.fields:
+                if Engine := _field.config.get('StorageEngine'):
+                    _field.config['storage_engine'] = Engine(request=request, form=self.form, background_tasks=background_tasks)
+                _field.config = {**self.config, **(_field.config or {})}
 
-            self.file_count = len(file_fields)
-            if not file_fields:
-                self._store = Store(message='No files were uploaded')
-                return self
+            if not self.fields:
+                return Store(status=False, error='No files were uploaded')
 
-            elif len(file_fields) == 1:
-                await self.upload(file_field=file_fields[0])
-
+            elif len(self.fields) == 1:
+                res = await self.upload(file_field=self.fields[0])
+                return self.set_store(res)
             else:
-                await self.multi_upload(file_fields=file_fields)
+                print('multiple files were uploaded')
+                res = await asyncio.gather(*[self.upload(file_field=_field) for _field in self.fields], return_exceptions=True)
+                return self.set_store(res)
         except FileStoreError as err:
+            print('in call', 'return store?')
             logger.error(f'Error uploading files: {err} in {self.__class__.__name__}')
-            self._store = Store(error=str(err), status=False)
-        return self
+            return Store(status=False, error="An error occurred while uploading files")
 
-    @abstractmethod
-    async def upload(self, *, file_field: FileField):
+    @staticmethod
+    def set_store(value: FileData | list[FileData]) -> Store:
+        if isinstance(value, FileData):
+            return Store(message=value.message, status=value.status, error=value.error, file=value)
+        elif isinstance(value, list):
+            store = Store(files={})
+            for file in value:
+                if isinstance(file, FileData):
+                    store.files.setdefault(f'{file.field_name}', []).append(file)
+            return store
+        return Store(error='No files were uploaded', status=False)
+
+    async def upload(self, *, file_field: FileField | list[FileField]) -> FileData | list[FileData]:
         """Upload a single file to a storage service.
 
         Args:
             file_field (FileField): A FileField dictionary instance.
         """
-    async def multi_upload(self, *, file_fields: List[FileField]):
-        """
-        Upload multiple files to a storage service.
+        ...
 
-        Args:
-            file_fields (list[FileField]): A list of FileFields to upload.
-        """
-        await asyncio.gather(*[self.upload(file_field=file_field) for file_field in file_fields])
-
-    @property
-    def store(self) -> Store:
-        """
-        Returns the Store of the file storage.
-
-        Returns:
-            Store: The Store of the file storage operation.
-        """
-        success = sum(len(files) for files in self._store.files.values())
-        failed = sum(len(files) for files in self._store.failed.values())
-        self._store.message = f'{success} files uploaded successfully' if success else ''
-        self._store.error = f'{failed} file(s) not uploaded' if failed else ''
-        return self._store
-
-    @store.setter
-    def store(self, value: FileData):
-        """
-        Sets the Store of the file storage operation.
-
-        Args:
-            value: A FileData instance.
-        """
-        try:
-            if not isinstance(value, FileData):
-                logger.error(f'Expected FileData instance, got {type(value)} in {self.__class__.__name__}')
-                return
-            if self.file_count == 1:
-                if value.status:
-                    self._store.file = value
-                    self._store.files[f'{value.field_name}'].append(value)
-                else:
-                    self._store.failed[f'{value.field_name}'].append(value)
-            else:
-                if value.status:
-                    self._store.files[f'{value.field_name}'].append(value)
-                else:
-                    self._store.failed[f'{value.field_name}'].append(value)
-        except Exception as err:
-            logger.error(f'Error setting Store in {self.__class__.__name__}: {err}')

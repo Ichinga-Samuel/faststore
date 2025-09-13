@@ -1,23 +1,50 @@
-from typing import Any, Set, Dict, Type
+from typing import Type
+from dataclasses import dataclass, field, make_dataclass
+from functools import cache
+from random import randint
 
-from pydantic.json_schema import GenerateJsonSchema, JsonSchemaWarningKind, DEFAULT_REF_TEMPLATE, JsonSchemaMode
-from pydantic import BaseModel, ConfigDict
+from .main import FileStore
+
+try:
+    from fastapi import UploadFile
+    from pydantic import BaseModel, create_model, Field
+except ImportError:
+    raise ImportError('Please install fastapi using pip install fastapi')
 
 
-class NoDefaultSchema(GenerateJsonSchema):
-    ignored_warning_kinds: Set[JsonSchemaWarningKind] = {'skipped-choice', 'non-serializable-default'}
+@cache
+def model(obj: FileStore, name: str = "") -> Type[BaseModel]:
+    """Returns a dataclass of the form fields
+
+    Returns:
+        Type[BaseModel]
+    """
+    body = {}
+    for _field in obj.fields:
+        if _field.max_count > 1:
+            body[_field.name] = (list[UploadFile], ...) if _field.required \
+                else (list[UploadFile], [])
+        else:
+            body[_field.name] = (UploadFile, ...) if _field.required \
+                else (UploadFile, None)
+    model_name = name or f"FormModel{randint(100, 1000)}"
+    return create_model(model_name, **body, __base__=BaseModel)
 
 
-class FormModel(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    @classmethod
-    def model_json_schema(
-        cls,
-        by_alias: bool = True,
-        ref_template: str = DEFAULT_REF_TEMPLATE,
-        schema_generator: Type[GenerateJsonSchema] = NoDefaultSchema,
-        mode: JsonSchemaMode = 'validation',
-    ) -> Dict[str, Any]:
-        return super().model_json_schema(by_alias=by_alias, ref_template=ref_template,
-                                         schema_generator=schema_generator, mode=mode)
+# @cache
+# def model(obj: FileStore, name: str = "") -> Type[dataclass]:
+#     """Returns a dataclass of the form fields
+#
+#     Returns:
+#         Type[dataclass]
+#     """
+#     body = []
+#     for _field in obj.fields:
+#         if _field.max_count > 1:
+#             body.append((_field.name, list[UploadFile])) if _field.required \
+#                 else body.append((_field.name, list[UploadFile], field(default_factory=list)))
+#         else:
+#             body.append((_field.name, UploadFile)) if _field.required \
+#                 else body.append((_field.name, UploadFile, field(default=None)))
+#     model_name = name or f"FormModel{randint(100, 1000)}"
+#     return make_dataclass(model_name, body)

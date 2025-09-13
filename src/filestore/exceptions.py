@@ -1,3 +1,2 @@
-
 class FileStoreError(Exception):
     pass

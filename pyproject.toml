@@ -1,15 +1,8 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "filestore"
-version = "1.0.7"
+version = "2.0.0b"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -20,7 +13,9 @@ authors = [{name = "Ichinga Samuel", email = "ichingasamuel@gmail.com"}]
 description = "Storage Engine Package for FastAPI"
 dependencies = [
     "fastapi",
+    "python-dotenv>=1.1.1",
     "python-multipart",
+    "uvicorn>=0.35.0",
 ]
 [project.optional-dependencies]
 s3 = [
@@ -30,3 +25,8 @@ s3 = [
 [project.urls]
 "Homepage" = "https://github.com/Ichinga-Samuel/faststore"
 "Bug Tracker" = "https://github.com/Ichinga-Samuel/faststore/issues"
+
+[dependency-groups]
+dev = [
+    "jinja2>=3.1.6",
+]
