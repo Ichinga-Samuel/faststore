@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 def local_book_destination(req: Request, form: FormData, field: str, file: UploadFile) -> Path:
     """Get the title from the form and create a folder with the title as the folder name."""
     print(form, 'local book destination')
-    folder = form['title']
+    folder = form.get('title', 'boll')
     path = Path.cwd() / f'test_files/uploads/books/{folder}'
     path.mkdir(parents=True, exist_ok=True) if not path.exists() else ...
     return path / f'{file.filename}'
@@ -88,7 +88,7 @@ LocalStorage
     ...
 
 @app.post("/local_multiple")
-async def local_multiple(tile: Annotated[str, Form()], author_name: Annotated[str, Form()],
+async def local_multiple(book: Annotated[BookForm, Form()],
                          files=Depends(multiple_local), models=Depends(model(multiple_local))):
     """Local storage multiple file upload endpoint.
     Args:
