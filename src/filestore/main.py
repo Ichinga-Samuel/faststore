@@ -3,7 +3,7 @@ import asyncio
 from typing import Type
 from logging import getLogger
 
-from starlette.datastructures import FormData
+from starlette.datastructures import FormData, UploadFile
 from starlette.background import BackgroundTasks
 from starlette.requests import Request
 
@@ -58,6 +58,7 @@ class FileStore:
     background_tasks: BackgroundTasks
     engine: StorageEngine
     StorageEngine: Type[StorageEngine]
+    store: Store
 
     def __init__(self, name: str = None, count: int = 1, required=False, fields: list[FileField] = None,
                  config: Config | dict = None):
@@ -81,7 +82,7 @@ class FileStore:
             self.fields = [FileField(name=name, max_count=count, required=required)] if name else []
         else:
             self.fields = fields or []
-        self.config = {'background': False, **(config or {})}
+        self.config = {"background": False, **(config or {})}
 
     def get_form_args(self) -> dict:
         return {"max_files": self.config.get("max_files", 1000), "max_fields": self.config.get("max_fields", 1000),
@@ -103,44 +104,102 @@ class FileStore:
         try:
             self.form = await request.form(**self.get_form_args())
             self.engine = self.StorageEngine(request=request, form=self.form, background_tasks=background_tasks)
-            self.config['storage_engine'] = self.engine
+            self.config["storage_engine"] = self.engine
             for _field in self.fields:
-                if Engine := _field.config.get('StorageEngine'):
-                    _field.config['storage_engine'] = Engine(request=request, form=self.form, background_tasks=background_tasks)
+                if Engine := _field.config.get("StorageEngine"):
+                    _field.config["storage_engine"] = Engine(request=request, form=self.form, background_tasks=background_tasks)
+                filters = _field.config.get("filters", [])
+                filters = [filters] if not isinstance(filters, list) else filters
+                c_filters = self.config.get("filters", [])
+                c_filters = [c_filters] if not isinstance(c_filters, list) else c_filters
+                filters.extend(c_filters)
+                _field.config["filters"] = filters
                 _field.config = {**self.config, **(_field.config or {})}
 
             if not self.fields:
-                return Store(status=False, error='No files were uploaded')
+                msg = "No files were uploaded"
+                return Store(status=False, error=msg, message=msg)
 
             elif len(self.fields) == 1:
-                res = await self.upload(file_field=self.fields[0])
+                res = await self.handle(file_field=self.fields[0])
                 return self.set_store(res)
             else:
-                print('multiple files were uploaded')
-                res = await asyncio.gather(*[self.upload(file_field=_field) for _field in self.fields], return_exceptions=True)
+                res = await asyncio.gather(*[self.handle(file_field=_field) for _field in self.fields], return_exceptions=True)
                 return self.set_store(res)
         except FileStoreError as err:
-            print('in call', 'return store?')
-            logger.error(f'Error uploading files: {err} in {self.__class__.__name__}')
+            logger.error("%s: Error uploading files %s in %s", err,)
             return Store(status=False, error="An error occurred while uploading files")
 
     @staticmethod
-    def set_store(value: FileData | list[FileData]) -> Store:
+    def set_store(value: FileData | list[FileData | list[FileData]]) -> Store:
+        store = Store(files={})
         if isinstance(value, FileData):
-            return Store(message=value.message, status=value.status, error=value.error, file=value)
-        elif isinstance(value, list):
-            store = Store(files={})
-            for file in value:
-                if isinstance(file, FileData):
-                    store.files.setdefault(f'{file.field_name}', []).append(file)
+            store.files.setdefault(f"{value.field_name}", []).append(value)
+            store.error = value.error
+            store.message = value.message
+            store.status = value.status
             return store
-        return Store(error='No files were uploaded', status=False)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, FileData):
+                    store.files.setdefault(f"{item.field_name}", []).append(item)
+                elif isinstance(item, list):
+                    for n_item in item:
+                        if isinstance(n_item, FileData):
+                            store.files.setdefault(f"{n_item.field_name}", []).append(n_item)
+            return store
+        return Store(error="No files were uploaded", status=False)
 
-    async def upload(self, *, file_field: FileField | list[FileField]) -> FileData | list[FileData]:
+    async def handle(self, *, file_field: FileField | list[FileField]) -> FileData | list[FileData]:
         """Upload a single file to a storage service.
 
         Args:
             file_field (FileField): A FileField dictionary instance.
         """
-        ...
+        try:
+            config = file_field.config
+            files = self.form.getlist(file_field.name)
+            if filters := config.get("filters", []):
+                files = [file for file in files if all(_filter(self.request, self.form, file_field.name, file) for _filter in filters)]
+            files = files[: file_field.max_count]
+            if callable(filename := config.get("filename")):
+                files = [filename(self.request, self.form, file_field.name, file) for file in files ]
+            if len(files) == 1:
+                file = files[0]
+                if config["background"]:
+                    self.background_tasks.add_task(self.upload, file_field, file)
+                    message = f"{file.filename} is uploading in the background"
+                    return FileData(filename=file.filename, content_type=file.content_type,
+                                    status=True, field_name=file_field.name, message=message)
+                else:
+                    return await self.upload(file_field, file)
 
+            elif len(files) > 1:
+                if config['background']:
+                    for file in files:
+                        self.background_tasks.add_task(self.upload, file_field, file)
+                    message = f'{len(files)} are saving in the background for field {file_field.name}'
+                    return FileData(status=True, field_name=file_field.name, message=message)
+                results = await asyncio.gather(*[self.upload(file_field, file) for file in files], return_exceptions=True)
+                file_data = []
+                for res in results:
+                    if isinstance(res, FileData):
+                        file_data.append(res)
+                    elif isinstance(res, Exception):
+                        file_data.append(FileData(field_name=file_field.name, error=str(res), status=False))
+                return file_data
+            else:
+                return FileData(status=False, field_name=file_field.name, message="No files were uploaded")
+        except Exception as err:
+            logger.error("%s: Error uploading file for %s in %s", err, file_field.name, self.__class__.__name__)
+            raise FileStoreError(err)
+
+    async def upload(self, file_field: FileField, file: UploadFile) -> FileData:
+        """Upload a single file to a storage service."""
+        try:
+            engine = file_field.config.get('storage_engine', self.engine)
+            return await engine.upload(file_field, file)
+        except Exception as err:
+            logger.error(f"Error uploading file: {err} in {self.__class__.__name__}")
+            return FileData(status=False, error="Something went wrong", field_name=file_field.name,
+                            message=f"Unable to upload {file_field.name}")

@@ -93,6 +93,7 @@ name = "filestore"
 version = "2.0.0b0"
 source = { virtual = "." }
 dependencies = [
+    { name = "boto3" },
     { name = "fastapi" },
     { name = "python-dotenv" },
     { name = "python-multipart" },
@@ -107,10 +108,12 @@ s3 = [
 [package.dev-dependencies]
 dev = [
     { name = "jinja2" },
+    { name = "python-dotenv" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "boto3", specifier = ">=1.40.21" },
     { name = "boto3", marker = "extra == 's3'" },
     { name = "fastapi" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
@@ -120,7 +123,10 @@ requires-dist = [
 provides-extras = ["s3"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "jinja2", specifier = ">=3.1.6" }]
+dev = [
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "python-dotenv", specifier = ">=1.1.1" },
+]
 
 [[package]]
 name = "h11"

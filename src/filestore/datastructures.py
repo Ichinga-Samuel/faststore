@@ -14,17 +14,17 @@ class Config(TypedDict, total=False):
     The configuration dict for both the Faststore and the FileField classes.
     """
     destination: Callable[[Request, FormData, str, UploadFile], str | Path] | str | Path
-    filter: Callable[[Request, FormData, str, UploadFile], bool]
+    filters: list[Callable[[Request, FormData, str, UploadFile], bool]] | Callable[[Request, FormData, str, UploadFile], bool]
     max_files: int
     max_fields: int
     max_part_size: int
     filename: Callable[[Request, FormData, str, UploadFile], UploadFile]
     background: bool
     extra_args: dict
-    bucket: str
-    region: str
-    storage_engine: 'StorageEngine'
-    StorageEngine: Type['StorageEngine']
+    AWS_DEFAULT_REGION: str
+    AWS_BUCKET_NAME: str
+    storage_engine: "StorageEngine"
+    StorageEngine: Type["StorageEngine"]
 
 
 @dataclass
@@ -71,6 +71,7 @@ class FileData:
     error: str = None
     message: str = None
 
+
 @dataclass
 class Store:
     """
@@ -83,7 +84,6 @@ class Store:
         error (str): The error message if the file storage operation failed.
         message (str): A general response message if the file storage operation was successful.
     """
-    file: FileData = None
     files: dict[str, list[FileData]] = None
     error: str = None
     message: str = None
