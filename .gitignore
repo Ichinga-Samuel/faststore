@@ -1,9 +1,9 @@
 .idea/
 *venv/
-uploads/
 .env
 .pypirc
 __pycache__/
-test_data/
+test_files/
+test_results/
 *.egg-info/
 dist/
