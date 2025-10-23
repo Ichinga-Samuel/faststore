@@ -1,4 +1,4 @@
-"""This module contains the main classes and methods for the filestore package."""
+"""This module contains the main class of the filestore package."""
 import asyncio
 from typing import Type
 from logging import getLogger
@@ -8,7 +8,7 @@ from starlette.background import BackgroundTasks
 from starlette.requests import Request
 
 from .datastructures import FileField, FileData, Store, Config
-from .storage_engines import StorageEngine
+from .storage_engines import StorageEngine, LocalEngine
 from .exceptions import FileStoreError
 
 logger = getLogger(__name__)
@@ -56,9 +56,9 @@ class FileStore:
     form: FormData
     request: Request
     background_tasks: BackgroundTasks
-    engine: StorageEngine
-    StorageEngine: Type[StorageEngine]
     store: Store
+    engine: StorageEngine
+    StorageEngine: Type[StorageEngine] = LocalEngine
 
     def __init__(self, name: str = None, count: int = 1, required=False, fields: list[FileField] = None,
                  config: Config | dict = None):
@@ -103,8 +103,8 @@ class FileStore:
         self.background_tasks = background_tasks
         try:
             self.form = await request.form(**self.get_form_args())
+            self.StorageEngine = self.config.get("StorageEngine", LocalEngine)
             self.engine = self.StorageEngine(request=request, form=self.form, background_tasks=background_tasks)
-            self.config["storage_engine"] = self.engine
             for _field in self.fields:
                 if Engine := _field.config.get("StorageEngine"):
                     _field.config["storage_engine"] = Engine(request=request, form=self.form, background_tasks=background_tasks)
@@ -124,7 +124,8 @@ class FileStore:
                 res = await self.handle(file_field=self.fields[0])
                 return self.set_store(res)
             else:
-                res = await asyncio.gather(*[self.handle(file_field=_field) for _field in self.fields], return_exceptions=True)
+                res = await asyncio.gather(*[self.handle(file_field=_field) for _field in self.fields],
+                                           return_exceptions=True)
                 return self.set_store(res)
         except FileStoreError as err:
             logger.error("%s: Error uploading files %s in %s", err,)
@@ -172,6 +173,8 @@ class FileStore:
                     return FileData(filename=file.filename, content_type=file.content_type,
                                     status=True, field_name=file_field.name, message=message)
                 else:
+                    # if file_field.name == 'covers':
+                    #     print(files, file, 'handle')
                     return await self.upload(file_field, file)
 
             elif len(files) > 1:
@@ -197,7 +200,7 @@ class FileStore:
     async def upload(self, file_field: FileField, file: UploadFile) -> FileData:
         """Upload a single file to a storage service."""
         try:
-            engine = file_field.config.get('storage_engine', self.engine)
+            engine = file_field.config.get("storage_engine", self.engine)
             return await engine.upload(file_field, file)
         except Exception as err:
             logger.error(f"Error uploading file: {err} in {self.__class__.__name__}")

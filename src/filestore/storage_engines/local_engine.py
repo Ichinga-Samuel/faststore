@@ -1,5 +1,5 @@
 """
-This module contains the LocalStorage class.
+This module contains the LocalEngine class.
 """
 from pathlib import Path
 from logging import getLogger
