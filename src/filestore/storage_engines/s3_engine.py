@@ -75,7 +75,7 @@ class S3Engine(StorageEngine):
             region = config.get("AWS_DEFAULT_REGION", os.environ.get("AWS_DEFAULT_REGION"))
             extra_args = config.get("extra_args", {})
             client = self.client(default_region=region)
-            res = await self._upload(client=client,file_obj=file.file, bucket=bucket, obj_name=object_name,
+            res = await self._upload(client=client, file_obj=file.file, bucket=bucket, obj_name=object_name,
                                      extra_args=extra_args)
             if (meta := res.get('ResponseMetadata', {})).get('HTTPStatusCode', 0) == 200:
                 msg = f"{file.filename} successfully uploaded"

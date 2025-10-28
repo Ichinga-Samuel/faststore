@@ -4,11 +4,8 @@ from random import randint
 
 from .main import FileStore
 
-try:
-    from fastapi import UploadFile
-    from pydantic import BaseModel, create_model, Field
-except ImportError:
-    raise ImportError("'Please install fastapi using 'pip install fastapi'")
+from fastapi import UploadFile
+from pydantic import BaseModel, create_model
 
 
 @cache

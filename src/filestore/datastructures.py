@@ -19,7 +19,6 @@ class Config(TypedDict, total=False):
     max_fields: int
     max_part_size: int
     filename: Callable[[Request, FormData, str, UploadFile], UploadFile]
-    background: bool
     extra_args: dict
     AWS_DEFAULT_REGION: str
     AWS_BUCKET_NAME: str
@@ -45,7 +44,7 @@ class FileData:
     The Store of a file storage operation.
 
     Attributes:
-        path (str): The path to the file for local storage.
+        path (str | Path): The path to the file for local storage.
         url (str): The url to the file for cloud storage.
         status (bool): The status of the file storage operation.
         content_type (str): The content type of the file.
@@ -78,7 +77,6 @@ class Store:
     The response model for the FastStore class.
 
     Attributes:
-        file (FileData | None): The Store of a single file upload or storage operation.
         files (Dict[str, List[FileData]]): The response of the file storage operations(s) as a dictionary of field name and
             FileData arranged by field name and filename
         error (str): The error message if the file storage operation failed.
