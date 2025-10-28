@@ -1,0 +1,8 @@
+.idea/
+*venv/
+.pytest_cache/
+.env
+.pypirc
+__pycache__/
+*.egg-info/
+dist/
