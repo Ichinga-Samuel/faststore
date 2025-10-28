@@ -60,3 +60,24 @@ def test_s3(capsys, pdf_book, mobi_book, epub_book, txt_book, front_cover, back_
     assert len(covers) == 2
     book1 = book_files[0]
     assert book1["filename"][-3:] in ["pdf", "mobi", "epub"]
+
+
+def test_multi_store(pdf_book, mobi_book, epub_book, txt_book, front_cover, back_cover, first_author,
+                     second_author, third_author):
+    files = [("book_files", pdf_book), ("book_files", mobi_book), ("book_files", txt_book), ("book_files", epub_book),
+             ("covers", front_cover), ("covers", back_cover), ("authors_images", first_author),
+             ("authors_images", second_author)]
+    response = client.post("/multi_store", files=files, data={"title": "TestBook"})
+    assert response.status_code == 200
+    res = response.json()
+    assert res["status"] is True
+    assert len(res["files"]) == 3
+    book_files = res["files"]["book_files"]
+    authors_images = res["files"]["authors_images"]
+    covers = res["files"]["covers"]
+    assert len(book_files) == 2
+    assert len(authors_images) == 2
+    assert len(covers) == 2
+    book1 = book_files[0]
+    assert book1["filename"][-3:] in ["pdf", "mobi", "epub"]
+

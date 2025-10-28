@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - dev
+      - v2
 jobs:
   push-to-repo:
     runs-on: ubuntu-latest
