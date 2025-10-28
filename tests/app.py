@@ -28,7 +28,7 @@ def local_file_destination(req: Request, form: FormData, field: str, file: Uploa
 
 def s3_file_destination(req: Request, form: FormData, field: str, file: UploadFile) -> str:
     """Create a folder like structure in the s3 bucket, using the title as the folder name."""
-    return f"test_results/uploads/books/{form["title"]}/{file.filename}"
+    return f"test_results/uploads/books/{form['title']}/{file.filename}"
 
 
 def image_filter(req: Request, form: FormData, field: str, file: UploadFile) -> bool:
