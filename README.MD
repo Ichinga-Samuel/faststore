@@ -1,4 +1,3 @@
-````markdown
 # Filestore
 
 [![PyPI version](https://badge.fury.io/py/filestore.svg)](https://badge.fury.io/py/filestore)
@@ -323,7 +322,4 @@ rename_storage = LocalStorage(
 async def upload_renamed(file_store: Store = Depends(rename_storage)):
     # The 'filename' in the FileData response will be the new UUID
     return file_store
-```
-
-```
 ```
