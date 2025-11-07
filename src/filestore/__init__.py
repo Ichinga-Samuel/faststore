@@ -4,3 +4,4 @@ from .localstorage import LocalStorage
 from .exceptions import FileStoreError
 from .datastructures import FileField, FileData, Config
 from .storage_engines import StorageEngine, LocalEngine, MemoryEngine
+from .util import FileModel

@@ -3,6 +3,7 @@ name = "filestore"
 version = "0.1.0"
 description = "File storage dependency for FastAPI"
 requires-python = ">=3.11"
+author = "Ichinga Samuel"
 dependencies = [
     "fastapi>=0.120.0",
     "python-multipart>=0.0.20",
