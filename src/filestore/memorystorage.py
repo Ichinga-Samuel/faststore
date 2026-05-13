@@ -1,14 +1,10 @@
-"""
-Memory storage class. This storage stores files in memory.
-"""
-from logging import getLogger
+"""In-memory storage shortcut."""
 
 from .main import FileStore
 from .storage_engines import MemoryEngine
 
-logger = getLogger()
-
 
 class MemoryStorage(FileStore):
-    """Memory storage class"""
+    """Pre-configured :class:`FileStore` using the in-memory backend."""
+
     StorageEngine = MemoryEngine

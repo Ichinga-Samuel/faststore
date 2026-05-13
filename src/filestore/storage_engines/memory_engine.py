@@ -1,33 +1,65 @@
+"""In-memory storage engine.
+
+Reads the entire upload into memory and returns the raw bytes via
+:attr:`FileData.file`.  Useful for pipelines that need the payload
+without touching the filesystem.
 """
-Memory storage for FastStore. This storage is used to store files in memory.
-"""
+
+from __future__ import annotations
+
 from logging import getLogger
-from fastapi import UploadFile
+from pathlib import Path
 
+from starlette.datastructures import UploadFile
+
+from ..datastructures import FileData, FileField
+from ..exceptions import StorageError, ValidationError
+from ..util import normalize_relative_filename
 from .storage_engine import StorageEngine
-from ..datastructures import FileField, FileData
 
-logger = getLogger()
+logger = getLogger(__name__)
 
 
 class MemoryEngine(StorageEngine):
-    """Memory storage Engine. This storage is used to store files in memory and returned as bytes."""
+    """Store uploaded files in memory and return their bytes.
+
+    The full file payload is available via :attr:`FileData.file` after
+    a successful upload.
+    """
+
+    storage_name = "memory"
+
     async def upload(self, file_field: FileField, file: UploadFile) -> FileData:
-        """Private method to upload the file to memory. This method is called by the upload method.
+        config = dict(file_field.config)
+        await file.seek(0)
 
-        Args:
-            file_field (FileField): A file field object.
-            file (UploadFile): The file to upload.
-
-        Returns:
-            FileData: The Store of the file upload operation.
-        """
         try:
-            obj = await file.read()
-            await file.close()
-            return FileData(size=file.size, filename=file.filename, content_type=file.content_type,
-                            field_name=file_field.name, file=obj,
-                            message=f"{file.filename} saved successfully", status=True)
+            payload = await file.read()
+            size = len(payload)
+            self.validate_size_limits(
+                size=size,
+                config=config,
+                field_name=file_field.name,
+                filename=file.filename,
+            )
+            filename = normalize_relative_filename(
+                file.filename,
+                sanitize=bool(config.get("sanitize_filename", True)),
+            ).as_posix()
+            return FileData(
+                field_name=file_field.name,
+                filename=filename,
+                content_type=file.content_type,
+                size=size,
+                file=payload,
+                message=f"{Path(filename).name} uploaded successfully",
+                status=True,
+                storage=self.storage_name,
+            )
+        except ValidationError:
+            raise
         except Exception as err:
-            logger.error("%s: Error Saving file to memory in %s", err, self.__class__.__name__)
-            return FileData(field_name=file_field.name, filename=file.filename, error=str(err), status=False)
+            logger.exception("Failed to save file to memory")
+            raise StorageError(f"Unable to store '{file.filename}' in memory") from err
+        finally:
+            await file.close()

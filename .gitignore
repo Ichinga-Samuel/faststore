@@ -1,8 +1,12 @@
 .idea/
 *venv/
+.venv/
 .pytest_cache/
 .env
 .pypirc
 __pycache__/
+*.py[cod]
 *.egg-info/
 dist/
+uploads/
+site/

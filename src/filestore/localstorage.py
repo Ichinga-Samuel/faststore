@@ -1,14 +1,10 @@
-"""
-This module contains the LocalStorage class.
-"""
-from logging import getLogger
+"""Local filesystem storage shortcut."""
 
 from .main import FileStore
 from .storage_engines import LocalEngine
 
-logger = getLogger()
-
 
 class LocalStorage(FileStore):
-    """Local storage class."""
+    """Pre-configured :class:`FileStore` using the local filesystem backend."""
+
     StorageEngine = LocalEngine
