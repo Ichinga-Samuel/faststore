@@ -1,19 +1,18 @@
-"""
-Amazon S3 storage for FastAPI. This module contains the S3Storage class which is used to upload files to Amazon S3.
-"""
-from logging import getLogger
+"""Amazon S3 storage shortcut."""
+
+from __future__ import annotations
 
 from .main import FileStore
-from .storage_engines.s3_engine import S3Engine
-
-logger = getLogger(__name__)
 
 
 class S3Storage(FileStore):
-    """
-    Amazon S3 storage for FastAPI.
+    """Pre-configured :class:`FileStore` using the Amazon S3 backend.
 
-    Properties:
-        client (boto3.client): The S3 client.
+    The ``filestore[s3]`` extra must be installed.
     """
-    StorageEngine = S3Engine
+
+    def __init__(self, *args, **kwargs):
+        from .storage_engines.s3_engine import S3Engine
+
+        self.StorageEngine = S3Engine
+        super().__init__(*args, **kwargs)

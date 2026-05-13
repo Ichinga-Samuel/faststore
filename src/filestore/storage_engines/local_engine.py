@@ -1,54 +1,124 @@
+"""Local filesystem storage engine.
+
+Writes files atomically via a temporary file + rename pattern and
+supports collision-free naming when ``overwrite`` is ``False``.
 """
-This module contains the LocalEngine class.
-"""
-from pathlib import Path
+
+from __future__ import annotations
+
+import asyncio
 from logging import getLogger
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from typing import BinaryIO
+from uuid import uuid4
 
 from starlette.datastructures import UploadFile
 
-from ..datastructures import FileField, FileData
+from ..datastructures import FileData, FileField
+from ..exceptions import StorageError, ValidationError
+from ..util import as_absolute_directory, build_public_url, ensure_unique_path, normalize_relative_filename
 from .storage_engine import StorageEngine
 
 logger = getLogger(__name__)
 
 
 class LocalEngine(StorageEngine):
-    """Local storage for FastAPI."""
-    @staticmethod
-    def get_path(filename: str, destination: str | Path = "") -> Path:
-        """Get the path to save the file to.
+    """Persist uploads to the local filesystem.
 
-        Returns:
-            Path: The path to save the file to.
+    Files are written atomically: data is first written to a temporary
+    file in the target directory, then renamed into place.  When
+    ``overwrite`` is ``False`` (the default), a numeric suffix is
+    appended to avoid overwriting existing files.
+    """
+
+    storage_name = "local"
+
+    @classmethod
+    def _write_file(
+        cls,
+        *,
+        source: BinaryIO,
+        target: Path,
+        chunk_size: int,
+        config: dict,
+        field_name: str,
+        filename: str | None,
+    ) -> int:
+        """Write *source* to *target* in chunks, validating size limits.
+
+        This runs in a thread via :func:`asyncio.to_thread`.
         """
-        if isinstance(destination, Path) and destination.is_absolute():
-            Path(destination).mkdir(parents=True, exist_ok=True)
-        else:
-            destination = Path.cwd() / destination
-            Path(destination).mkdir(parents=True, exist_ok=True)
-        return destination / filename
+        bytes_written = 0
+        with target.open("wb") as handle:
+            while chunk := source.read(chunk_size):
+                bytes_written += len(chunk)
+                cls.validate_size_limits(
+                    size=bytes_written,
+                    config=config,
+                    field_name=field_name,
+                    filename=filename,
+                    final=False,
+                )
+                handle.write(chunk)
+        cls.validate_size_limits(
+            size=bytes_written,
+            config=config,
+            field_name=field_name,
+            filename=filename,
+            final=True,
+        )
+        return bytes_written
 
     async def upload(self, file_field: FileField, file: UploadFile) -> FileData:
-        """Private method to upload the file to the destination. This method is called by the upload method.
+        config = dict(file_field.config)
+        relative_name = normalize_relative_filename(
+            file.filename,
+            sanitize=bool(config.get("sanitize_filename", True)),
+        )
+        destination = as_absolute_directory(await self.resolve_destination(file_field, file))
+        destination.mkdir(parents=True, exist_ok=True)
+        final_path = destination / relative_name
+        final_path.parent.mkdir(parents=True, exist_ok=True)
 
-        Args:
-            file_field (FileField): The file field to upload.
-            file (UploadFile): The file to upload.
+        if not bool(config.get("overwrite", False)):
+            final_path = ensure_unique_path(final_path)
 
-        Returns:
-            FileData: The file upload result.
-        """
+        temp_path = final_path.with_name(f".{final_path.name}.{uuid4().hex}.tmp")
+        await file.seek(0)
+
         try:
-            config = file_field.config
-            dest = config.get("destination", "")
-            dest = dest(self.request, self.form, file_field.name, file) if callable(dest) else self.get_path(file.filename, dest)
-            file_object = await file.read()
-            with open(f"{dest}", "wb") as fh:
-                fh.write(file_object)
-            await file.close()
-            message = f"{file.filename} was saved successfully for field {file_field.name}"
-            return FileData(size=file.size, filename=file.filename, content_type=file.content_type,
-                     path=dest, field_name=file_field.name, message=message, status=True)
+            with NamedTemporaryFile(delete=False, dir=final_path.parent) as temp_file:
+                temp_path = Path(temp_file.name)
+            size = await asyncio.to_thread(
+                self._write_file,
+                source=file.file,
+                target=temp_path,
+                chunk_size=self.get_chunk_size(config),
+                config=config,
+                field_name=file_field.name,
+                filename=file.filename,
+            )
+            temp_path.replace(final_path)
+            relative_path = final_path.relative_to(destination)
+            return FileData(
+                field_name=file_field.name,
+                filename=relative_path.as_posix(),
+                content_type=file.content_type,
+                size=size,
+                path=final_path.resolve(),
+                url=build_public_url(config.get("base_url"), relative_path),
+                metadata={"relative_path": relative_path.as_posix()},
+                message=f"{relative_path.name} uploaded successfully",
+                status=True,
+                storage=self.storage_name,
+            )
+        except ValidationError:
+            temp_path.unlink(missing_ok=True)
+            raise
         except Exception as err:
-            logger.error(f'Error Saving file to Local: {err} in {self.__class__.__name__}')
-            return FileData(field_name=file_field.name, filename=file.filename, error=str(err), status=False)
+            temp_path.unlink(missing_ok=True)
+            logger.exception("Failed to save file to local storage")
+            raise StorageError(f"Unable to store '{file.filename}' in field '{file_field.name}'") from err
+        finally:
+            await file.close()

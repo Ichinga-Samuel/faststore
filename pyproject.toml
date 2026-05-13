@@ -1,28 +1,74 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
 [project]
 name = "filestore"
-version = "0.1.2"
-description = "File storage dependency for FastAPI"
+version = "1.0.1alpha"
+description = "Production-ready file upload dependency and storage toolkit for FastAPI"
 readme = "README.md"
 requires-python = ">=3.11"
+license = {file = "LICENSE"}
 authors = [
     {name = "Ichinga Samuel", email = "ichingasamuel@gmail.com"},
 ]
+keywords = ["fastapi", "upload", "multipart", "storage", "s3", "gcs", "azure"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
-    "fastapi>=0.120.0",
+    "fastapi>=0.120.0,<1.0.0",
     "python-multipart>=0.0.20",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Ichinga-Samuel/faststore"
+Repository = "https://github.com/Ichinga-Samuel/faststore"
+Issues = "https://github.com/Ichinga-Samuel/faststore/issues"
+
 [project.optional-dependencies]
+azure = [
+    "azure-identity>=1.17.0",
+    "azure-storage-blob>=12.22.0",
+]
+gcp = [
+    "google-cloud-storage>=2.18.0",
+]
 s3 = [
     "boto3>=1.40.59",
-    "boto3-stubs==1.40.59",
+]
+pydantic = [
+    "pydantic>=2.0",
 ]
 
 [dependency-groups]
 dev = [
+    "boto3>=1.40.59",
     "httpx>=0.28.1",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "python-dotenv>=1.1.1",
     "uvicorn>=0.38.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/filestore"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src/filestore",
+    "/tests",
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml",
+    "/pytest.ini",
 ]
