@@ -93,9 +93,7 @@ class FileStore:
     def _validate_fields(self) -> None:
         """Ensure no two fields share the same name."""
         duplicate_names = {
-            field.name
-            for field in self.fields
-            if sum(candidate.name == field.name for candidate in self.fields) > 1
+            field.name for field in self.fields if sum(candidate.name == field.name for candidate in self.fields) > 1
         }
         if duplicate_names:
             duplicates = ", ".join(sorted(duplicate_names))
@@ -254,8 +252,7 @@ class FileStore:
         if isinstance(raw_extensions, str):
             raw_extensions = [raw_extensions]
         allowed_extensions = {
-            extension.lower() if extension.startswith(".") else f".{extension.lower()}"
-            for extension in raw_extensions
+            extension.lower() if extension.startswith(".") else f".{extension.lower()}" for extension in raw_extensions
         }
         if allowed_extensions:
             suffix = normalize_relative_filename(file.filename).suffix.lower()
@@ -381,15 +378,17 @@ class FileStore:
         """
         merged_config = self._merge_config(file_field)
         bound_field = replace(file_field, config=merged_config)
-        bound_field.config["storage_engine"] = self._create_engine(config=bound_field.config, request=request, form=form)
+        bound_field.config["storage_engine"] = self._create_engine(
+            config=bound_field.config, request=request, form=form
+        )
 
         files = [item for item in form.getlist(bound_field.name) if isinstance(item, UploadFile)]
         results: list[FileData] = []
 
         # Enforce max_count
         if len(files) > bound_field.max_count:
-            overflow_files = files[bound_field.max_count:]
-            files = files[:bound_field.max_count]
+            overflow_files = files[bound_field.max_count :]
+            files = files[: bound_field.max_count]
             for overflow_file in overflow_files:
                 await overflow_file.close()
                 results.append(

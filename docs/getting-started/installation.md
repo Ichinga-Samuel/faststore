@@ -2,7 +2,7 @@
 
 ## Base Package
 
-Install **faststore** with pip:
+Install **filestore** with pip:
 
 ```bash
 pip install filestore

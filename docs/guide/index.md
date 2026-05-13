@@ -1,6 +1,6 @@
 # User Guide
 
-The user guide covers every feature of **faststore** in depth. If you haven't already, start with the [Quick Start](../getting-started/quickstart.md).
+The user guide covers every feature of **filestore** in depth. If you haven't already, start with the [Quick Start](../getting-started/quickstart.md).
 
 ## Topics
 

@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] — Unreleased
+## [1.0.1] - 2026-05-13
 
 ### Fixed
 
@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive docstrings across all public APIs.
 - Full test suite (175 tests) covering data structures, utilities, engines, orchestration, and integration.
 - MkDocs Material documentation site with GitHub Pages deployment.
+- Ruff formatting and linting configuration.
+- Coverage configuration with branch coverage reporting.
+- PyPI Trusted Publishing workflow for GitHub Releases.
+- PyPI package metadata, badges, and release validation checks.
 
 ## [0.2.0] — 2026-05-01
 

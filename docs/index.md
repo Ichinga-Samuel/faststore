@@ -3,7 +3,7 @@ hide:
   - navigation
 ---
 
-# Faststore
+# filestore
 
 <div style="text-align: center; margin: 2rem 0;">
 <p style="font-size: 1.4rem; color: var(--md-default-fg-color--light);">
@@ -11,13 +11,18 @@ Production-ready file upload toolkit for FastAPI
 </p>
 </div>
 
-[![PyPI version](https://badge.fury.io/py/filestore.svg)](https://pypi.org/project/filestore)
-[![Python Versions](https://img.shields.io/pypi/pyversions/filestore.svg)](https://pypi.org/project/filestore)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://img.shields.io/pypi/v/filestore.svg)](https://pypi.org/project/filestore/)
+[![Python versions](https://img.shields.io/pypi/pyversions/filestore.svg)](https://pypi.org/project/filestore/)
+[![Package status](https://img.shields.io/pypi/status/filestore.svg)](https://pypi.org/project/filestore/)
+[![CI](https://github.com/Ichinga-Samuel/faststore/actions/workflows/action.yaml/badge.svg)](https://github.com/Ichinga-Samuel/faststore/actions/workflows/action.yaml)
+[![Docs](https://github.com/Ichinga-Samuel/faststore/actions/workflows/docs.yml/badge.svg)](https://github.com/Ichinga-Samuel/faststore/actions/workflows/docs.yml)
+[![License](https://img.shields.io/pypi/l/filestore.svg)](https://pypi.org/project/filestore/)
+[![Ruff](https://img.shields.io/badge/lint-ruff-46a3ff.svg)](https://docs.astral.sh/ruff/)
+[![Typed](https://img.shields.io/badge/typed-py.typed-success.svg)](https://peps.python.org/pep-0561/)
 
 ---
 
-**Faststore** is a small FastAPI upload library with a simple dependency-based API and production-grade defaults. It keeps the happy path short, but adds the things real services usually need.
+**filestore** is a small FastAPI upload library with a simple dependency-based API and production-grade defaults. It keeps the happy path short, but adds the things real services usually need.
 
 ## Features
 
@@ -94,7 +99,7 @@ That's it. Uploads are validated, written atomically to disk, and collision-free
 
 -   [:material-download: **Installation**](getting-started/installation.md)
 
-    Install faststore and optional cloud backends
+    Install filestore and optional cloud backends
 
 -   [:material-rocket-launch: **Quick Start**](getting-started/quickstart.md)
 

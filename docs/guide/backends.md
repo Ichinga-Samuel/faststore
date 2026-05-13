@@ -1,6 +1,6 @@
 # Storage Backends
 
-Faststore ships with five storage backends. All share the same API — you can switch backends by changing a single class name.
+filestore ships with five storage backends. All share the same API — you can switch backends by changing a single class name.
 
 ## Local Storage
 

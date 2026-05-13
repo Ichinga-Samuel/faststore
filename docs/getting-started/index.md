@@ -1,6 +1,6 @@
 # Getting Started
 
-Welcome to **Faststore** — a production-ready file upload toolkit for FastAPI.
+Welcome to **filestore** — a production-ready file upload toolkit for FastAPI.
 
 This section covers everything you need to start accepting file uploads in your FastAPI application.
 

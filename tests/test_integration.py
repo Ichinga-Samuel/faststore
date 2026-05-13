@@ -6,11 +6,9 @@ validation → storage → Store response, with a real FastAPI application.
 
 from __future__ import annotations
 
-import io
 from pathlib import Path
 
 import httpx
-import pytest
 from fastapi import Depends, FastAPI
 
 from filestore import Config, FileField, LocalStorage, MemoryStorage, Store

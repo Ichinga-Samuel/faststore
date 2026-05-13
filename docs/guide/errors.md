@@ -1,6 +1,6 @@
 # Error Handling
 
-Faststore uses a structured exception hierarchy and never crashes your endpoint with unhandled exceptions.
+filestore uses a structured exception hierarchy and never crashes your endpoint with unhandled exceptions.
 
 ## Design Philosophy
 

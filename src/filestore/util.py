@@ -169,9 +169,7 @@ def FileModel(obj: "FileStore", name: str = ""):
     try:
         from pydantic import BaseModel, create_model
     except ImportError as err:
-        raise ImportError(
-            "pydantic is required for FileModel(). Install it with: pip install pydantic"
-        ) from err
+        raise ImportError("pydantic is required for FileModel(). Install it with: pip install pydantic") from err
 
     body: dict[str, tuple[Any, Any]] = {}
     for item in obj.fields:

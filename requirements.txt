@@ -1,7 +1,10 @@
 -e .
 boto3>=1.40.59
+coverage[toml]>=7.14.0
 httpx>=0.28.1
 pytest>=8.4.2
 pytest-asyncio>=1.2.0
 python-dotenv>=1.1.1
+ruff>=0.15.12
+twine>=6.2.0
 uvicorn>=0.38.0

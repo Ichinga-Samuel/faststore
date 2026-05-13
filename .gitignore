@@ -4,9 +4,13 @@
 .pytest_cache/
 .env
 .pypirc
+.ruff_cache/
 __pycache__/
 *.py[cod]
 *.egg-info/
+.coverage
+coverage.xml
+htmlcov/
 dist/
 uploads/
 site/

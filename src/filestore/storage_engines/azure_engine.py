@@ -53,7 +53,9 @@ class AzureBlobEngine(StorageEngine):
     def _create_client(*, connection_string: str = "", account_url: str = "", credential: Any = None):
         """Create an Azure ``BlobServiceClient``."""
         if BlobServiceClient is None:
-            raise MissingDependencyError("Install filestore[azure] to use AzureStorage") from _AZURE_STORAGE_IMPORT_ERROR
+            raise MissingDependencyError(
+                "Install filestore[azure] to use AzureStorage"
+            ) from _AZURE_STORAGE_IMPORT_ERROR
 
         if connection_string:
             return BlobServiceClient.from_connection_string(connection_string)

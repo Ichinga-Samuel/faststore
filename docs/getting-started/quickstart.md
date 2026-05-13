@@ -1,6 +1,6 @@
 # Quick Start
 
-This guide walks you through building your first file upload endpoint with **faststore**.
+This guide walks you through building your first file upload endpoint with **filestore**.
 
 ## 1. Create a FastAPI App
 
@@ -78,7 +78,7 @@ uvicorn app:app --reload
 ## What Happened?
 
 1. FastAPI parsed the multipart request and extracted the `file` field
-2. **Faststore** validated the upload (size, type, etc.)
+2. **filestore** validated the upload (size, type, etc.)
 3. The file was written atomically to `uploads/document.pdf`
 4. If `document.pdf` already existed, it was automatically renamed to `document-1.pdf`
 5. A `Store` object was returned with all the results
@@ -107,7 +107,7 @@ Now any file that doesn't match the constraints will be rejected with a clear er
 
 ## Switching Backends
 
-The beauty of faststore is that **every backend shares the same API**. To switch from local to S3:
+The beauty of filestore is that **every backend shares the same API**. To switch from local to S3:
 
 ```python
 # Before: local storage

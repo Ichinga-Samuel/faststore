@@ -5,12 +5,10 @@ from __future__ import annotations
 import io
 
 import pytest
-from starlette.datastructures import Headers, UploadFile
-
-from filestore import FileData, FileField, MemoryEngine, ValidationError
-from filestore.exceptions import StorageError
+from starlette.datastructures import UploadFile
 
 from conftest import make_form_data, make_request, make_upload_file
+from filestore import FileData, FileField, MemoryEngine, ValidationError
 
 
 class TestMemoryEngine:

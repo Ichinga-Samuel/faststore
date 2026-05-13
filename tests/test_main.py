@@ -7,29 +7,16 @@ MemoryEngine to avoid filesystem dependencies.
 
 from __future__ import annotations
 
-import io
-from pathlib import Path
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
-from starlette.datastructures import FormData, Headers, UploadFile
-from starlette.requests import Request
 
+from conftest import make_form_data, make_request, make_upload_file
 from filestore import (
-    Config,
     ConfigurationError,
     FileData,
     FileField,
     FileStore,
     MemoryStorage,
-    Store,
-    ValidationError,
 )
-from filestore.main import PreparedUpload
-
-from conftest import make_form_data, make_request, make_upload_file
-
 
 # ── FileStore construction ────────────────────────────────────────────
 
@@ -59,10 +46,12 @@ class TestFileStoreConstruction:
 
     def test_duplicate_field_names_raise(self):
         with pytest.raises(ConfigurationError, match="Duplicate"):
-            FileStore(fields=[
-                FileField(name="file"),
-                FileField(name="file"),
-            ])
+            FileStore(
+                fields=[
+                    FileField(name="file"),
+                    FileField(name="file"),
+                ]
+            )
 
     def test_no_fields_no_error(self):
         store = FileStore()
@@ -217,11 +206,13 @@ class TestFilters:
         file = make_upload_file(b"data", "test.txt")
         field = FileField(
             name="file",
-            config={"filters": [
-                lambda r, f, n, file: True,
-                lambda r, f, n, file: "Second filter rejects",
-                lambda r, f, n, file: "Third filter (never reached)",
-            ]},
+            config={
+                "filters": [
+                    lambda r, f, n, file: True,
+                    lambda r, f, n, file: "Second filter rejects",
+                    lambda r, f, n, file: "Third filter (never reached)",
+                ]
+            },
         )
         result = await store._run_filters(
             config=field.config,
@@ -553,10 +544,12 @@ class TestCallEndToEnd:
         assert first.status is True
 
     async def test_multiple_fields(self):
-        storage = FileStore(fields=[
-            FileField(name="avatar", required=True),
-            FileField(name="resume"),
-        ])
+        storage = FileStore(
+            fields=[
+                FileField(name="avatar", required=True),
+                FileField(name="resume"),
+            ]
+        )
         storage.StorageEngine = __import__("filestore").MemoryEngine
 
         avatar = make_upload_file(b"avatar data", "avatar.png", "image/png")

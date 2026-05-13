@@ -24,8 +24,20 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Run lint
+        run: uv run ruff check .
+
       - name: Run Tests
-        run: uv run pytest
+        run: uv run coverage run -m pytest
+
+      - name: Report coverage
+        run: uv run coverage report
 
       - name: Build package
         run: uv build
+
+      - name: Check package metadata
+        run: uv run twine check dist/*

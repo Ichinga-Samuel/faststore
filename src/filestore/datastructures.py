@@ -112,10 +112,7 @@ class FileField:
         self.config = dict(self.config or {})
 
     def __repr__(self) -> str:
-        return (
-            f"FileField(name={self.name!r}, max_count={self.max_count}, "
-            f"required={self.required})"
-        )
+        return f"FileField(name={self.name!r}, max_count={self.max_count}, required={self.required})"
 
 
 @dataclass(slots=True)
@@ -176,10 +173,7 @@ class FileData:
 
     def __repr__(self) -> str:
         status = "ok" if self.status else "failed"
-        return (
-            f"FileData(field={self.field_name!r}, filename={self.filename!r}, "
-            f"status={status}, size={self.size})"
-        )
+        return f"FileData(field={self.field_name!r}, filename={self.filename!r}, status={status}, size={self.size})"
 
 
 @dataclass(slots=True)
@@ -248,8 +242,7 @@ class Store:
         """Return a JSON-serializable dictionary representation."""
         return {
             "files": {
-                field_name: [file_data.to_dict() for file_data in items]
-                for field_name, items in self.files.items()
+                field_name: [file_data.to_dict() for file_data in items] for field_name, items in self.files.items()
             },
             "error": self.error,
             "message": self.message,

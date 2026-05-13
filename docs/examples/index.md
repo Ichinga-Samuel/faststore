@@ -1,6 +1,6 @@
 # Examples
 
-Real-world examples showing how to use faststore in production applications.
+Real-world examples showing how to use filestore in production applications.
 
 | Example | Description |
 |---------|-------------|

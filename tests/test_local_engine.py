@@ -5,12 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from starlette.datastructures import UploadFile
-
-from filestore import FileData, FileField, LocalEngine, ValidationError
-from filestore.exceptions import StorageError
 
 from conftest import make_form_data, make_request, make_upload_file
+from filestore import FileField, LocalEngine, ValidationError
 
 
 class TestLocalEngine:

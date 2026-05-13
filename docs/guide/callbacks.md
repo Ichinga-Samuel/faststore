@@ -1,6 +1,6 @@
 # Callbacks
 
-Faststore supports dynamic resolution of filenames, destinations, metadata, and filters via callbacks. Every callback receives the same four arguments:
+filestore supports dynamic resolution of filenames, destinations, metadata, and filters via callbacks. Every callback receives the same four arguments:
 
 ```python
 def callback(request, form, field_name, file):
@@ -14,7 +14,7 @@ def callback(request, form, field_name, file):
 | `field_name` | `str` | Name of the upload field being processed |
 | `file` | `UploadFile` | The file being processed |
 
-All callbacks can be **sync or async** — faststore handles both transparently.
+All callbacks can be **sync or async** — filestore handles both transparently.
 
 ---
 

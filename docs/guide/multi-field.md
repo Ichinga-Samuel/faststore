@@ -1,6 +1,6 @@
 # Multi-Field Uploads
 
-Faststore supports handling multiple upload fields in a single request, each with its own configuration and validation rules.
+filestore supports handling multiple upload fields in a single request, each with its own configuration and validation rules.
 
 ## Defining Multiple Fields
 

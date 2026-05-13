@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
-
-import pytest
 
 from filestore.util import (
     as_absolute_directory,
@@ -21,7 +18,6 @@ from filestore.util import (
     normalize_relative_filename,
     sanitize_path_part,
 )
-
 
 # ── maybe_await ───────────────────────────────────────────────────────
 

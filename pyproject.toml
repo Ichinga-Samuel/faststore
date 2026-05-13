@@ -4,26 +4,30 @@ build-backend = "hatchling.build"
 
 [project]
 name = "filestore"
-version = "1.0.1alpha"
+version = "1.1.1"
 description = "Production-ready file upload dependency and storage toolkit for FastAPI"
-readme = "README.md"
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     {name = "Ichinga Samuel", email = "ichingasamuel@gmail.com"},
 ]
 keywords = ["fastapi", "upload", "multipart", "storage", "s3", "gcs", "azure"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: FastAPI",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 dependencies = [
     "fastapi>=0.120.0,<1.0.0",
@@ -31,7 +35,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Ichinga-Samuel/faststore"
+Changelog = "https://github.com/Ichinga-Samuel/faststore/blob/master/docs/changelog.md"
+Documentation = "https://ichinga-samuel.github.io/faststore/"
+Homepage = "https://ichinga-samuel.github.io/faststore/"
 Repository = "https://github.com/Ichinga-Samuel/faststore"
 Issues = "https://github.com/Ichinga-Samuel/faststore/issues"
 
@@ -49,16 +55,43 @@ s3 = [
 pydantic = [
     "pydantic>=2.0",
 ]
+all = [
+    "azure-identity>=1.17.0",
+    "azure-storage-blob>=12.22.0",
+    "boto3>=1.40.59",
+    "google-cloud-storage>=2.18.0",
+    "pydantic>=2.0",
+]
 
 [dependency-groups]
 dev = [
     "boto3>=1.40.59",
+    "coverage[toml]>=7.14.0",
     "httpx>=0.28.1",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "python-dotenv>=1.1.1",
+    "ruff>=0.15.12",
+    "twine>=6.2.0",
     "uvicorn>=0.38.0",
 ]
+
+[tool.coverage.run]
+branch = true
+source = ["filestore"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+line-length = 120
+src = ["src", "tests"]
+target-version = "py311"
+
+[tool.ruff.lint]
+ignore = ["E501", "E731"]
+select = ["E", "F", "I"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/filestore"]
@@ -66,9 +99,11 @@ packages = ["src/filestore"]
 [tool.hatch.build.targets.sdist]
 include = [
     "/src/filestore",
+    "/docs",
     "/tests",
     "/README.md",
     "/LICENSE",
+    "/mkdocs.yml",
     "/pyproject.toml",
     "/pytest.ini",
 ]

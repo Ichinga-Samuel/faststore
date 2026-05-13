@@ -1,6 +1,6 @@
 # Validation
 
-Faststore validates every upload before persisting it. Validation failures are captured per-file in the `Store` result — they don't crash your endpoint.
+filestore validates every upload before persisting it. Validation failures are captured per-file in the `Store` result — they don't crash your endpoint.
 
 ## File Size Limits
 
@@ -94,7 +94,7 @@ config = Config(
 
 ### Sync and Async
 
-Filters can be sync or async — faststore handles both:
+Filters can be sync or async — filestore handles both:
 
 ```python
 # Sync filter

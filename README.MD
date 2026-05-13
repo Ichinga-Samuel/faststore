@@ -1,7 +1,13 @@
 # filestore
 
-[![PyPI version](https://badge.fury.io/py/filestore.svg)](https://pypi.org/project/filestore)
-[![Python Versions](https://img.shields.io/pypi/pyversions/filestore.svg)](https://pypi.org/project/filestore)
+[![PyPI version](https://img.shields.io/pypi/v/filestore.svg)](https://pypi.org/project/filestore/)
+[![Python versions](https://img.shields.io/pypi/pyversions/filestore.svg)](https://pypi.org/project/filestore/)
+[![Package status](https://img.shields.io/pypi/status/filestore.svg)](https://pypi.org/project/filestore/)
+[![CI](https://github.com/Ichinga-Samuel/faststore/actions/workflows/action.yaml/badge.svg)](https://github.com/Ichinga-Samuel/faststore/actions/workflows/action.yaml)
+[![Docs](https://github.com/Ichinga-Samuel/faststore/actions/workflows/docs.yml/badge.svg)](https://github.com/Ichinga-Samuel/faststore/actions/workflows/docs.yml)
+[![License](https://img.shields.io/pypi/l/filestore.svg)](LICENSE)
+[![Ruff](https://img.shields.io/badge/lint-ruff-46a3ff.svg)](https://docs.astral.sh/ruff/)
+[![Typed](https://img.shields.io/badge/typed-py.typed-success.svg)](https://peps.python.org/pep-0561/)
 
 `filestore` is a small FastAPI upload library with a simple dependency-based API and production-grade defaults.
 
@@ -13,7 +19,7 @@ It keeps the happy path short, but adds the things real services usually need:
 - Async or sync callbacks for filenames, destinations, filters, and metadata
 - File validation for size, extension, and content type
 - Rich per-file results with aggregate helpers
-- Optional S3 support that does not break the base install
+- Optional cloud storage support that does not break the base install
 
 ## Installation
 
@@ -39,6 +45,12 @@ Install with Azure Blob Storage support:
 
 ```bash
 pip install "filestore[azure]"
+```
+
+Install every optional backend and helper:
+
+```bash
+pip install "filestore[all]"
 ```
 
 ## Quick Start
@@ -347,17 +359,29 @@ Common config keys:
 
 ## Development
 
-Run tests with:
+Install the locked development environment:
 
 ```bash
-uv run pytest
+uv sync --locked --all-extras --dev
 ```
 
-Build the package with:
+Run formatting, linting, and tests with coverage:
+
+```bash
+uv run ruff format --check .
+uv run ruff check .
+uv run coverage run -m pytest
+uv run coverage report
+```
+
+Build and validate the package metadata before publishing:
 
 ```bash
 uv build
+uv run twine check dist/*
 ```
+
+Releases are published from GitHub Releases through the Trusted Publishing workflow in `.github/workflows/publish.yml`.
 
 ## License
 

@@ -1,4 +1,4 @@
-site_name: Faststore
+site_name: filestore
 site_url: https://ichinga-samuel.github.io/faststore
 site_description: Production-ready file upload toolkit for FastAPI
 site_author: Ichinga Samuel
