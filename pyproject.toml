@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "filestore"
-version = "1.1.1"
+version = "1.1.2"
 description = "Production-ready file upload dependency and storage toolkit for FastAPI"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
